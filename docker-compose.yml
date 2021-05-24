@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  fugetgallery:
+    image: ${DOCKER_REGISTRY-}fugetgallery
+    build:
+      context: .
+      dockerfile: Dockerfile

@@ -5,6 +5,7 @@
     <UserSecretsId>5e871c0e-a27b-4955-828a-77fbc521c8b4</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>.</DockerfileContext>
+    <DockerComposeProjectPath>docker-compose.dcproj</DockerComposeProjectPath>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="ICSharpCode.Decompiler" Version="7.0.0.6488" />
