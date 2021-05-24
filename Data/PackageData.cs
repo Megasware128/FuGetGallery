@@ -112,7 +112,7 @@ namespace FuGetGallery
             return r;
         }
 
-        void Read (MemoryStream bytes, HttpClient httpClient)
+        void Read (Stream bytes, HttpClient httpClient)
         {
             SizeInBytes = bytes.Length;
             Archive = new ZipArchive (bytes, ZipArchiveMode.Read);
@@ -404,11 +404,58 @@ namespace FuGetGallery
             {
                 //System.Console.WriteLine($"DOWNLOADING {package.DownloadUrl}");
                 var r = await httpClient.GetAsync (package.DownloadUrl, token).ConfigureAwait (false);
-                var data = new MemoryStream ();
-                using (var s = await r.Content.ReadAsStreamAsync ().ConfigureAwait (false)) {
-                    await s.CopyToAsync (data, 16 * 1024, token).ConfigureAwait (false);
+                if (!r.IsSuccessStatusCode) {
+                    throw new Exception($"Failed to download {package.DownloadUrl} due to HTTP response status code {r.StatusCode}.");
                 }
-                data.Position = 0;
+                
+                var sha256 = System.Security.Cryptography.SHA256.Create();
+                var idString = $"{package.Id}-{package.Version}";
+                var idHashBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(idString));
+                var idHash = BitConverter.ToString(idHashBytes).Replace("-", "").ToLowerInvariant();
+                // System.Console.WriteLine($"ID STRING {idString}={idHash}");
+                var fileCacheName = idHash + ".zip";
+
+                var fileCacheDir = Path.Combine(
+                    Path.GetTempPath(),
+                    "FugetPackageCache",
+                    idHash.Substring(0, 2));
+                Directory.CreateDirectory(fileCacheDir);
+                var fileCachePath = Path.Combine(fileCacheDir, fileCacheName);
+
+                if (File.Exists (fileCachePath)) {
+                    // All good?
+                }
+                else
+                {
+                    var tmpFilePath = Path.GetTempFileName();
+                    try {                        
+                        using (var fileCacheStream = File.Open(tmpFilePath, FileMode.Create, FileAccess.Write, FileShare.Read)) {
+                            using (var s = await r.Content.ReadAsStreamAsync ().ConfigureAwait (false)) {
+                                await s.CopyToAsync (fileCacheStream, token).ConfigureAwait (false);
+                            }
+                        }
+                        File.Move(tmpFilePath, fileCachePath);
+                    }
+                    catch (Exception ex) {
+                        try {
+                            File.Delete(fileCachePath);
+                            Console.WriteLine(ex);
+                        }
+                        catch (Exception) {}
+                    }
+                    try {
+                        File.Delete(tmpFilePath);
+                    }
+                    catch (Exception) {}
+                }
+
+                if (!File.Exists (fileCachePath)) {
+                    throw new Exception("Failed to download the package");
+                }
+
+                var mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateFromFile(fileCachePath);
+                var data = mmf.CreateViewStream();
+
                 await Task.Run (() => package.Read (data, httpClient), token).ConfigureAwait (false);
                 await package.MatchLicenseAsync (httpClient).ConfigureAwait (false);
                 await package.SaveDependenciesAsync ();
