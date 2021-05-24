@@ -66,8 +66,8 @@ namespace FuGetGallery
             format.PropertyBraceStyle = ICSharpCode.Decompiler.CSharp.OutputVisitor.BraceStyle.EndOfLine;
             format.PropertyGetBraceStyle = ICSharpCode.Decompiler.CSharp.OutputVisitor.BraceStyle.EndOfLine;
             format.PropertySetBraceStyle = ICSharpCode.Decompiler.CSharp.OutputVisitor.BraceStyle.EndOfLine;
-            format.AutoPropertyFormatting = ICSharpCode.Decompiler.CSharp.OutputVisitor.PropertyFormatting.ForceOneLine;
-            format.SimplePropertyFormatting = ICSharpCode.Decompiler.CSharp.OutputVisitor.PropertyFormatting.ForceOneLine;
+            format.AutoPropertyFormatting = ICSharpCode.Decompiler.CSharp.OutputVisitor.PropertyFormatting.SingleLine;
+            format.SimplePropertyFormatting = ICSharpCode.Decompiler.CSharp.OutputVisitor.PropertyFormatting.SingleLine;
             format.IndentPropertyBody = false;
             format.IndexerDeclarationClosingBracketOnNewLine = ICSharpCode.Decompiler.CSharp.OutputVisitor.NewLinePlacement.SameLine;
             format.IndexerClosingBracketOnNewLine = ICSharpCode.Decompiler.CSharp.OutputVisitor.NewLinePlacement.SameLine;
@@ -78,7 +78,7 @@ namespace FuGetGallery
                 var m = Definition?.MainModule;
                 if (m == null)
                     return null;
-                return new ICSharpCode.Decompiler.CSharp.CSharpDecompiler (m, new ICSharpCode.Decompiler.DecompilerSettings {
+                return new ICSharpCode.Decompiler.CSharp.CSharpDecompiler (m.FileName, new ICSharpCode.Decompiler.DecompilerSettings {
                     ShowXmlDocumentation = false,
                     ThrowOnAssemblyResolveErrors = false,
                     AlwaysUseBraces = false,
@@ -92,7 +92,7 @@ namespace FuGetGallery
                 var m = Definition?.MainModule;
                 if (m == null)
                     return null;
-                return new ICSharpCode.Decompiler.CSharp.CSharpDecompiler (m, new ICSharpCode.Decompiler.DecompilerSettings {
+                return new ICSharpCode.Decompiler.CSharp.CSharpDecompiler (m.FileName, new ICSharpCode.Decompiler.DecompilerSettings {
                     ShowXmlDocumentation = false,
                     ThrowOnAssemblyResolveErrors = false,
                     AlwaysUseBraces = false,
