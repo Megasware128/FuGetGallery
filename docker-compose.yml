@@ -6,3 +6,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    ports:
+      - "9080:80"
+      - "9443:433"
